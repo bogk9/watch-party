@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+	<link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+	<div id="header">
+		<nav id='menu'>
+			<input type='checkbox' id='responsive-menu' onclick='updatemenu()'><label></label>
+			<ul>
+			  <li><a href='http://'>Home</a></li>
+			  <li><a href='http://'>Products</a></li>
+			  <li><a href='http://'>About</a></li>
+			 
+		  </nav>
+	</div>
+	<div id="flexbox-container">
+
+		<div id="chat">
+			<button type="button" id="roundButton" style="background-color: rgb(254, 95, 86); margin-left: 15px; margin-bottom: 9px; margin-top: 9px;"></button>
+			<button type="button" id="roundButton" style="background-color: rgb(255, 187, 46); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
+			<button type="button" id="roundButton" style="background-color: rgb(40, 199, 63); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
+
+			<ul id="messages"></ul>
+		</div>
+
+		<div id="player-box">
+			<button type="button" id="roundButton" style="background-color: rgb(254, 95, 86); margin-left: 15px; margin-bottom: 9px; margin-top: 9px;"></button>
+			<button type="button" id="roundButton" style="background-color: rgb(255, 187, 46); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
+			<button type="button" id="roundButton" style="background-color: rgb(40, 199, 63); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
+			<div id="player">
+				<script src="player.js"></script>
+			</div>
+			<div id="howto">
+				<br>Type /play [url] to start watching movie together!
+				<br> Keep in mind, that one person pausing = everyone's video is paused.
+			</div>
+		</div>
+
+		<div id="footerfdsf">
+			<form id="form" action="">
+				<input id="input" autocomplete="off" /><button>Send</button> <button id="testbutton" type="button"">test</button>
+				</form>
+				
+				<script src="/socket.io/socket.io.js"></script>
+	
+				<script>
+					var socket = io();
+	
+					var form = document.getElementById('form');
+					var input = document.getElementById('input');
+					var messages = document.getElementById('messages');
+					let playerBox = document.getElementById('player-box');
+					let testbutton  = document.getElementById('testbutton');
+	
+					form.addEventListener('submit', function(e) {
+					e.preventDefault();
+					if (input.value[0]==='/'){ 
+						let command = input.value.substr(1);
+						let message = {
+							from: "",
+							text: command
+						}
+						socket.emit('cmd', JSON.stringify(message));
+						input.value = '';
+
+					} else{
+						let message = {
+							type: "global",
+							from: "",
+							text: input.value
+						}
+						socket.emit('msg', JSON.stringify(message));
+						input.value = '';
+					}
+						
+					});
+	
+					testbutton.addEventListener('click', function(e) {
+						let messageEntity = document.createElement('li');
+						playerBox.style = "display: none;";
+						messageEntity.innerHTML = "test click";
+						messages.appendChild(messageEntity);
+					})
+					
+					socket.on('msg', (message) => {
+						console.log('Message: ' + JSON.parse(message).text);
+						let messageObject = JSON.parse(message);
+						let messageEntity = document.createElement('li');
+						messageEntity.innerHTML = "<br><b>"+ messageObject.from + "</b>: " + messageObject.text;
+						messages.appendChild(messageEntity);	
+					});
+
+					socket.on('playerControl', (message) => {
+						let messageObject = JSON.parse(message);
+						switch(messageObject.type){
+							case 'play':
+								//player.cueVideoById(messageObject.text);
+								player.destroy();
+								startPlayerInstance(messageObject.text);
+								//player.playVideo();
+								console.log("play: " + messageObject.text);
+								break;
+							case 'pause':
+								if(player.data !== 2)
+									player.pauseVideo();
+								break;
+							case 'resume':
+								if(player.data !== YT.PlayerState.PLAYING)
+									player.playVideo();
+								break;
+						}
+						console.log('playerControl msg: ' + JSON.parse(message).text);
+						
+					})
+					setTimeout(() => startPlayerInstance("nWqaHWACB9E"), 500);
+					//player.playVideo();
+				</script>
+		</div>
+
+		
+	</div>
+  </body>
+</html>

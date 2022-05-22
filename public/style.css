@@ -1,0 +1,214 @@
+body {
+	margin: 0;
+	padding-bottom: 3rem;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+#form {
+	background: #272727;
+	padding: 0.25rem;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	display: flex;
+	height: 3rem;
+	box-sizing: border-box;
+	backdrop-filter: blur(10px);
+}
+
+#input {
+	border: none;
+	padding: 0 1rem;
+	flex-grow: 1;
+	border-radius: 2rem;
+	margin: 0.25rem;
+}
+
+#input:focus {
+	outline: none;
+}
+
+#form>button {
+	background: #333;
+	border: none;
+	padding: 0 1rem;
+	margin: 0.25rem;
+	border-radius: 3px;
+	outline: none;
+	color: #fff;
+}
+
+#messages {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+#messages>li {
+	padding: 0.5rem 1rem;
+}
+
+
+
+#messages>li:nth-child(odd) {
+	background: #686868;
+}
+
+
+
+
+
+
+
+
+
+#flexbox-container { 
+    display: flex; 
+    /*
+    grid-template-columns: repeat(2, 1fr); 
+    grid-template-rows: repeat(3, 1fr); 
+    grid-column-gap: 0px;
+    grid-row-gap: 0px; 
+    */
+}
+
+#header { flex:1; } 
+#chat { 
+    flex:1;
+    height: calc(100vh - 80px);
+    border-radius: 20px;
+    margin: 1px;
+    background-color: #272727;
+    overflow:hidden;
+ } 
+#player-box { 
+    flex:1;
+    height: calc(100vh - 80px);
+    border-radius: 20px;
+    margin: 1px;
+    background-color: #272727;
+    overflow:hidden;
+
+
+} 
+#footer > * { flex:1; } 
+
+
+
+
+
+
+
+#menu {
+	background: #272727;
+	color: #FFF;
+	height: 30px;
+	padding-left: 18px;
+}
+#menu ul, #menu li {
+	margin: 0 auto;
+	padding: 0;
+	list-style: none
+}
+#menu ul {
+	width: 100%;
+}
+#menu li {
+	float: left;
+	display: inline;
+	position: relative;
+}
+#menu a {
+	display: block;
+	line-height: 30px;
+	padding: 0 14px;
+	text-decoration: none;
+	color: #FFFFFF;
+	font-size: 15px;
+}
+#menu a.dropdown-arrow:after {
+	content: "\25BE";
+	margin-left: 5px;
+}
+#menu li a:hover {
+	color: #0099CC;
+	background: #F2F2F2;
+}
+#menu input {
+	display: none;
+	margin: 0;
+	padding: 0;
+	height: 30px;
+	width: 100%;
+	opacity: 0;
+	cursor: pointer
+}
+#menu label {
+	display: none;
+	line-height: 30px;
+	text-align: center;
+	position: absolute;
+	left: 35px
+}
+#menu label:before {
+	font-size: 1.6em;
+	content: "\2261"; 
+	margin-left: 20px;
+}
+#menu ul.sub-menus{
+	height: auto;
+	overflow: hidden;
+	width: 170px;
+	background: #444444;
+	position: absolute;
+	z-index: 99;
+	display: none;
+}
+#menu ul.sub-menus li {
+	display: block;
+	width: 100%;
+}
+#menu ul.sub-menus a {
+	color: #FFFFFF;
+	font-size: 16px;
+}
+#menu li:hover ul.sub-menus {
+	display: block
+}
+#menu ul.sub-menus a:hover{
+	background: #F2F2F2;
+	color: #444444;
+}
+@media screen and (max-width: 800px){
+	#menu {position:relative}
+	#menu ul {background:#111;position:absolute;top:100%;right:0;left:0;z-index:3;height:auto;display:none}
+	#menu ul.sub-menus {width:100%;position:static;}
+	#menu ul.sub-menus a {padding-left:30px;}
+	#menu li {display:block;float:none;width:auto;}
+	#menu input, #menu label {position:absolute;top:0;left:0;display:block}
+	#menu input {z-index:4}
+	#menu input:checked + label {color:white}
+	#menu input:checked + label:before {content:"\00d7"}
+	#menu input:checked ~ ul {display:block}
+}
+
+
+#roundButton{
+    height: 15px;
+	  width: 15px;
+	  background-color: red;
+	  border-radius: 50%;
+	  border-width: 0px;
+	  display: inline-block;
+      margin-left: 15px;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      
+}
+
+#howto{
+	margin: 10px;
+	color: #bfbdbd;
+	font-weight:2px;
+}
