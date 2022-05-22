@@ -1,29 +1,17 @@
-const express = require('express');
-const http = require('http');
-const {Server} = require("socket.io");
-const stdin = process.openStdin();
-
-// settings
-const SERVER_PORT = 3101;
 const joinMessage = (nickname) => {return nickname + ' has just joined the chat!';}
 const leaveMessage = (nickname) => {return nickname + ' is not here with us, anymore.'}
 
-// http express init
-const app = express();
-const server = http.createServer(app);
+module.exports = (app) => {
+
 let connectedUsers = []; // {socket, nick, priv}
 
-// starting server instance
-const io = new Server(server);
-
-// load index.html to client
-app.get('/', (req, res) => {
-	res.sendFile(__dirname + '/index.html');
+var server = app.listen(process.env.PORT || 3102, function() {
+    console.log('server listening at', server.address())
 });
-
+var io = require('socket.io')(server);
 
 /* Function to add {socket, nick, priv} object to connectedUsers array.  */
-/* Presumably, to be called by connect  event listener. */
+/* Presumably, to be called by connect event listener. */
 
 const addUser = (socket, err) => {
 	connectedUsers.forEach((user) => {
@@ -54,11 +42,13 @@ const findUserBySocket = (socket) => {
 */
 
 
-const executeCommand = (command, socket) => {
-	command = command.split(' ');
-	switch (command[0]){
+const handleCommand = (command, socket) => {
+	//gets ex. "kick amber66"
+	console.log(command);
+	let commandPayload = command.text.split(' ');
+	switch (commandPayload[0]){
 	case 'kick':
-		const target = connectedUsers.find(user => user.nick===command[1]).socket;
+		const target = connectedUsers.find(user => user.nick===commandPayload[1]).socket;
 		if(target){
 			target.disconnect();
 		}
@@ -67,10 +57,28 @@ const executeCommand = (command, socket) => {
 		}
 		break;
 	case 'nick':
-		if(findUserByNick(command[1])){socket.emit('msg', JSON.stringify({type: "global", from: "Server", text: "hey! it's already taken"})); return;}
-		findUserBySocket(socket).nick = command[1];
+		if(findUserByNick(commandPayload[1])){socket.emit('msg', JSON.stringify({type: "global", from: "Server", text: "hey! it's already taken"})); return;}
+		findUserBySocket(socket).nick = commandPayload[1];
+		break;
+	case 'play':
+		if(!commandPayload[1]) {
+			socket.emit('msg', JSON.stringify({type: "global", from: "Server", text: "No video specified."}));
+			return;
+		}
+		io.emit('playerControl', JSON.stringify({type: "play", from: "Server", text: commandPayload[1].split('?v=')[1]}));
+		io.emit('msg', JSON.stringify({type: "global", from: "Server", text: connectedUsers.find(user => user.socket===socket) + " played: " + commandPayload[1] }));
+		console.log("play!");
+		break;
+	case 'pause':
+		console.log("pause!");
+		io.emit('playerControl', JSON.stringify({type: "pause", from: "Server", text: ""}));
+		break;
+	case 'resume':
+		console.log("resume!");
+		io.emit('playerControl', JSON.stringify({type: "resume", from: "Server", text: ""}));
 		break;
 	}
+
 } 
 
 
@@ -79,6 +87,7 @@ const executeCommand = (command, socket) => {
 
 const handleMessage = (msg, socket) => {
 	// msg should be a parsed JSON object
+
 	switch (msg.type){
 	case 'global':
 		  const sender = connectedUsers.find(user => user.socket===socket);
@@ -89,7 +98,6 @@ const handleMessage = (msg, socket) => {
 		  //not yet implemented
 		  break;
 	case 'command':
-		  console.log("command");
 		  executeCommand(msg.text, socket);
 	default:
 		  //throw some error
@@ -100,7 +108,7 @@ const handleMessage = (msg, socket) => {
 
 io.on("connection", (socket) => {
 	
-	/* User has joined, so call addUser to connectedUsers array, and notify participants and console */ 
+	/* User has joined, so call addUser on connectedUsers array, and notify participants and console */ 
 	
 	addUser(socket, ()=>{
 		socket.emit('msg', JSON.stringify({type: 'private', from: '', text: 'You are already connected.'}));
@@ -117,6 +125,13 @@ io.on("connection", (socket) => {
 		handleMessage(messageObj, socket);
 		console.log('[' + messageObj.type + ']' + socket.id + " says: " + messageObj.text);
 	});
+
+	socket.on('cmd', (message) => {
+		let messageObj = JSON.parse(message);
+		handleCommand(messageObj, socket);
+		console.log(socket.id + " commands: " + messageObj.text);
+	});
+
 	
 	/* Handle disconnection: removeUser from connectedUsers array and notify participants and console */ 
 	
@@ -137,34 +152,12 @@ io.engine.on("connection_error", (err) => {
 });
 
 
-server.listen(SERVER_PORT, () => {
-	console.log('Server started to listen!');
-	console.log('type off to shut down.')
-});
+
+}
+
+
 
 /* Listening for server terminal commands */
 
-stdin.addListener("data", (d) => {	
-	switch (d.toString().trim()){
-	case 'off':
-		shutdown();
-		break;
-	default:
-		console.log("Unknown input!");
-		break;
-	}
-})
 
-/* To properly shut down the server (disconnecting all sockets, making the port free to be used again): */
 
-async function shutdown(){
-	io.close(() => {
-		//fired when all connectons all closed
-		console.log('Stopping server!');
-	});
-	
-	const sockets = await io.fetchSockets();
-	for(const socket of sockets){
-		socket.disconnect();
-	}
-}
