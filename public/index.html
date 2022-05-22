@@ -89,7 +89,10 @@
 						let messageObject = JSON.parse(message);
 						let messageEntity = document.createElement('li');
 						messageEntity.innerHTML = "<br><b>"+ messageObject.from + "</b>: " + messageObject.text;
-						messages.appendChild(messageEntity);	
+						messages.appendChild(messageEntity);
+						
+						var objDiv = document.getElementById("chat");
+						objDiv.scrollTop = objDiv.scrollHeight;
 					});
 
 					socket.on('playerControl', (message) => {

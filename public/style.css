@@ -2,6 +2,7 @@ body {
 	margin: 0;
 	padding-bottom: 3rem;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	background-color: rgb(25, 25, 25);
 }
 
 #form {
@@ -21,8 +22,13 @@ body {
 	border: none;
 	padding: 0 1rem;
 	flex-grow: 1;
-	border-radius: 2rem;
+	border-radius: 10px;
 	margin: 0.25rem;
+	background-color: #272727;
+	border:solid;
+	border-width:1.1px;
+	border-color: #4a4b4c;
+	color: #eeeff2;
 }
 
 #input:focus {
@@ -43,6 +49,7 @@ body {
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
+	color: #eeeff2;
 }
 
 #messages>li {
@@ -52,7 +59,7 @@ body {
 
 
 #messages>li:nth-child(odd) {
-	background: #686868;
+	background: #3c3c3c;
 }
 
 
@@ -77,16 +84,23 @@ body {
 #chat { 
     flex:1;
     height: calc(100vh - 80px);
-    border-radius: 20px;
-    margin: 1px;
+    border-radius: 10px;
+	border: solid;
+	border-width: 1.1px;
+	border-color: #656565;
+    margin: 0px;
     background-color: #272727;
     overflow:hidden;
+	overflow-y: scroll;
  } 
 #player-box { 
     flex:1;
-    height: calc(100vh - 80px);
-    border-radius: 20px;
-    margin: 1px;
+	height: calc(100vh - 80px);
+    border-radius: 10px;
+	border: solid;
+	border-width: 1.1px;
+	border-color: #656565;
+    margin: 0px;
     background-color: #272727;
     overflow:hidden;
 
@@ -101,7 +115,7 @@ body {
 
 
 #menu {
-	background: #272727;
+	background-image: linear-gradient(to right, #1c295c, #233063, #29376b, #303f72, #36467a);
 	color: #FFF;
 	height: 30px;
 	padding-left: 18px;
