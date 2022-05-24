@@ -1,13 +1,14 @@
-
 module.exports = (server) => {
 
     let connectedUsers = []; // {socket, nick, priv}
+	let currentlyPlaying = {video_id: "nWqaHWACB9E", socket_id: "", timestamp: 0, playing: false}; 
+
     var io = require('socket.io')(server);
 
     /* Function to add {socket, nick, priv} object to connectedUsers array.  */
-    /* Presumably, to be called by connect event listener. */
+    /* Presumably, to be only called by connection event listener. */
 
-    const addUser = (socket, err) => {
+    const addUser = (socket) => {
         connectedUsers.forEach((user) => {
             if (user.socket.id === socket.id) {
                 err();
@@ -22,9 +23,9 @@ module.exports = (server) => {
     }
 
     /* Function to remove {socket, nick, priv} object from connectedUsers array.  */
-    /* Presumably, to be called by disconnect event listener. */
+    /* Presumably, to be called only by disconnect event listener. */
 
-    const removeUser = (socket, err) => {
+    const removeUser = (socket) => {
         connectedUsers = connectedUsers.filter(user => user.socket !== socket);
     }
 
@@ -39,12 +40,10 @@ module.exports = (server) => {
     /* 
        Function to process user commends.  
        Takes '[command] [target]' string as an input, ex. 'kick anna12'.
-       Slash is ommited by frontend (see script in index.html)
+       Slash is ommited by frontend script.
     */
 
     const handleCommand = (command, socket) => {
-        //gets ex. "kick amber66"
-        console.log(command);
         let commandPayload = command.text.split(' ');
         switch (commandPayload[0]) {
             case 'kick':
@@ -87,8 +86,9 @@ module.exports = (server) => {
                 io.emit('msg', JSON.stringify({
                     type: "global",
                     from: "Server",
-                    text: connectedUsers.find(user => user.socket === socket) + " played: " + commandPayload[1]
+                    text: connectedUsers.find(user => user.socket === socket).nick + " played: " + commandPayload[1]
                 }));
+				currentlyPlaying = {video_id: commandPayload[1].split('?v=')[1], socket_id: socket.id, timestamp: 0, playing: true}
                 console.log("play!");
                 break;
             case 'pause':
@@ -98,6 +98,7 @@ module.exports = (server) => {
                     from: "Server",
                     text: ""
                 }));
+				currentlyPlaying.playing = false;
                 break;
             case 'resume':
                 console.log("resume!");
@@ -106,6 +107,7 @@ module.exports = (server) => {
                     from: "Server",
                     text: ""
                 }));
+				currentlyPlaying.playing = true;
                 break;
 			case 'jump':
 				console.log("jump + " + commandPayload[1]);
@@ -115,11 +117,13 @@ module.exports = (server) => {
 					text: commandPayload[1]
 				}));
 				break;
+			case 'timestamp':
+				console.log("timestamp notify + " + commandPayload[1]);
+				currentlyPlaying.timestamp = commandPayload[1];
+
         }
 
     }
-
-
 
     /* Routes messages to appropriate targets: global, specified user, or command processor executeCommand() */
 
@@ -139,27 +143,16 @@ module.exports = (server) => {
             case 'private':
                 //not yet implemented
                 break;
-            case 'command':
-                executeCommand(msg.text, socket);
             default:
-                //throw some error
                 break;
         }
     }
-
 
     io.on("connection", (socket) => {
 
         /* User has joined, so call addUser on connectedUsers array, and notify participants and console */
 
-        addUser(socket, () => {
-            socket.emit('msg', JSON.stringify({
-                type: 'private',
-                from: '',
-                text: 'You are already connected.'
-            }));
-            socket.disconnect();
-        });
+        addUser(socket);
 
         console.log(findUserBySocket(socket).nick + ' has just joined the chat!');
         io.emit('msg', JSON.stringify({
@@ -168,6 +161,14 @@ module.exports = (server) => {
             text: findUserBySocket(socket).nick + ' has just joined the chat!'
         }));
 
+		socket.emit('playerControl', JSON.stringify({
+			type: "play",
+			from: currentlyPlaying.socket_id,
+			timestamp: currentlyPlaying.timestamp,
+			autoplay: currentlyPlaying.playing,
+			text: currentlyPlaying.video_id
+		}))
+		
         /* Handle incoming messages*/
 
         socket.on('msg', (message) => {
@@ -192,12 +193,28 @@ module.exports = (server) => {
                 from: "Server",
                 text: findUserBySocket(socket).nick  + ' is not here with us, anymore.'
             }));
+
+			if(currentlyPlaying.socket_id === socket.id){
+				io.emit('playerControl', JSON.stringify({
+                    type: "pause",
+                    from: "Server",
+                    text: ""
+                }));
+				currentlyPlaying.playing = false;
+
+				io.emit('msg', JSON.stringify({
+					type: "global",
+					from: "Server",
+					text: 'Video auto-paused (no video admin in the room).'
+				}));
+			}
+
 			removeUser(socket);
         })
+
     })
 
-    /* Some basic error handler - more tbd... */
-
+    /* error handler - tbd... */
     io.engine.on("connection_error", (err) => {
         console.log(err.req);
         console.log(err.code);
@@ -208,7 +225,3 @@ module.exports = (server) => {
 
 
 }
-
-
-
-/* Listening for server terminal commands */

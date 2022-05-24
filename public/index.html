@@ -1,195 +1,64 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Socket.IO chat</title>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-	<link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-	<div id="header">
-		<nav id='menu'>
-			<input type='checkbox' id='responsive-menu' onclick='updatemenu()'><label></label>
-			<ul>
-			  <li><a href='http://'>Home</a></li>
-			  <li><a href='http://'>Products</a></li>
-			  <li><a href='http://'>About</a></li>
-			 
-		  </nav>
-	</div>
-	<div id="flexbox-container">
-
-		<div id="chat">
-			<button type="button" id="roundButton" style="background-color: rgb(254, 95, 86); margin-left: 15px; margin-bottom: 9px; margin-top: 9px;"></button>
-			<button type="button" id="roundButton" style="background-color: rgb(255, 187, 46); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
-			<button type="button" id="roundButton" style="background-color: rgb(40, 199, 63); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
-
-			<ul id="messages"></ul>
-		</div>
-
-		<div id="player-box">
-			<button type="button" id="roundButton" style="background-color: rgb(254, 95, 86); margin-left: 15px; margin-bottom: 9px; margin-top: 9px;"></button>
-			<button type="button" id="roundButton" style="background-color: rgb(255, 187, 46); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
-			<button type="button" id="roundButton" style="background-color: rgb(40, 199, 63); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
-			<div id="player">
-				<script src="player.js"></script>
-			</div>
-			<div id="howto">
-				<br>Type /play [url] to start watching movie together!
-				<br> Keep in mind, that one person pausing = everyone's video is paused.
-				<br>
-
-				<section id="controls" style="display:none;">
-					<button type="button" id="button_play" class="btn btn-default btn-sm">
-						<span class="glyphicon glyphicon-play"></span> Play
-					</button>
-
-					<button type="button" id="button_pause" class="btn btn-default btn-sm">
-						<span class="glyphicon glyphicon-pause"></span> Pause
-					</button>
-
-					<button type="button" id="button_default" class="btn btn-default btn-sm">
-						<span class="glyphicon glyphicon-stop"></span> Back to default
-					</button>
-				</section>
-
-				<p id="time"></p>
-
-
-
-
-			</div>
-		</div>
-
-		<div id="footerfdsf">
-			<form id="form" action="">
-				<input id="input" autocomplete="off" /><button>Send</button> <button id="testbutton" type="button"">test</button>
-				</form>
-				
-				<script src="/socket.io/socket.io.js"></script>
-	
-				<script>
-					var socket = io();
-	
-					var form = document.getElementById('form');
-					var input = document.getElementById('input');
-					var messages = document.getElementById('messages');
-					let playerBox = document.getElementById('player-box');
-					var controls = document.getElementById('controls');
-
-					let testbutton  = document.getElementById('testbutton');
-					let playButton = document.getElementById('button_play');
-					let pauseButton = document.getElementById('button_pause');
-					let defaultButton = document.getElementById('button_default')
-
-					var playing = false;		
-					var isVideoOwner = false; //permission to manage player state
-	
-					const startPlayback = (obj, player) => {
-						player.destroy();
-						console.log("play: " + obj.text);
-
-						//check "from" field to see who's the owner
-						if(obj.from === socket.id){
-							let messageEntity = document.createElement('li');
-							messageEntity.innerHTML = "yaay! i am the owner";
-							isVideoOwner = true;
-							controls.style.display = "block"
-							messages.appendChild(messageEntity);
-						} else {
-							isVideoOwner = true;
-							controls.style.display = "none";
-
-						}
-						startPlayerInstance(obj.text, isVideoOwner);
-					}
-
-					const pausePlayback = (player) => {
-						if(player.data !== 2){
-							playing = false;
-							player.pauseVideo();
-						}
-					}
-
-					const resumePlayback = (player) => {
-						if(player.data !== YT.PlayerState.PLAYING){
-							playing = true;
-							player.playVideo();
-						}
-					}
-
-					form.addEventListener('submit', function(e) {
-					e.preventDefault();
-					if (input.value[0]==='/'){ 
-						let command = input.value.substr(1);
-						let message = {
-							from: "",
-							text: command
-						}
-						socket.emit('cmd', JSON.stringify(message));
-						input.value = '';
-
-					} else{
-						let message = {
-							type: "global",
-							from: "",
-							text: input.value
-						}
-						socket.emit('msg', JSON.stringify(message));
-						input.value = '';
-					}
-						
-					});
-	
-					testbutton.addEventListener('click', function(e) {
-						let messageEntity = document.createElement('li');
-						playerBox.style = "display: none;";
-						messageEntity.innerHTML = "test click";
-						messages.appendChild(messageEntity);
-					})
-
-					playButton.addEventListener('click', function(e){
-						socket.emit('cmd', JSON.stringify({from: "", text: "resume"}));
-					})
-
-					pauseButton.addEventListener('click', function(e){
-						socket.emit('cmd', JSON.stringify({from: "", text: "pause"}));
-					})
-					
-					socket.on('msg', (message) => {
-						console.log('Message: ' + JSON.parse(message).text);
-						let messageObject = JSON.parse(message);
-						let messageEntity = document.createElement('li');
-						messageEntity.innerHTML = "<br><b>"+ messageObject.from + "</b>: " + messageObject.text;
-						messages.appendChild(messageEntity);
-						
-						var objDiv = document.getElementById("chat");
-						objDiv.scrollTop = objDiv.scrollHeight;
-					});
-
-					socket.on('playerControl', (message) => {
-						let messageObject = JSON.parse(message);
-						switch(messageObject.type){
-							case 'play':
-								startPlayback(messageObject, player);
-								break;
-							case 'pause':
-								pausePlayback(player);
-								break;
-							case 'resume':
-								resumePlayback(player);
-								break;
-							case 'jump':
-								player.seekTo(messageObject.text);
-								break;
-						}
-						console.log('playerControl msg: ' + JSON.parse(message).text);
-						
-					})
-					setTimeout(() => startPlayerInstance("nWqaHWACB9E"), 500);
-				</script>
-		</div>
-
-		
-	</div>
-  </body>
+   <head>
+      <title>Socket.IO chat</title>
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+      <link rel="stylesheet" href="style.css">
+   </head>
+   <body>
+      <div id="header">
+         <nav id='menu'>
+            <input type='checkbox' id='responsive-menu' onclick='updatemenu()'><label></label>
+            <ul>
+            <li><a href='#' id="button_setnick">Set nickname</a></li>
+            <li><a href='#' id="button_hostvideo">Play video</a></li>
+            <li><a href='https://www.google.com/'>Exit</a></li>
+         </nav>
+      </div>
+      <div id="flexbox-container">
+         <div id="chat">
+            <button type="button" id="roundButton" style="background-color: rgb(254, 95, 86); margin-left: 15px; margin-bottom: 9px; margin-top: 9px;"></button>
+            <button type="button" id="roundButton" style="background-color: rgb(255, 187, 46); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
+            <button type="button" id="roundButton" style="background-color: rgb(40, 199, 63); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
+            <ul id="messages"></ul>
+         </div>
+         <div id="player-box">
+            <button type="button" id="roundButton" style="background-color: rgb(254, 95, 86); margin-left: 15px; margin-bottom: 9px; margin-top: 9px;"></button>
+            <button type="button" id="roundButton" style="background-color: rgb(255, 187, 46); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
+            <button type="button" id="roundButton" style="background-color: rgb(40, 199, 63); margin-left: 5px; margin-bottom: 9px; margin-top: 9px;"></button>
+            <div id="player">
+            </div>
+            <div id="howto">
+               <button type="button" id="button_unmute" class="btn btn-default btn-sm">
+               <span class="glyphicon glyphicon-play"></span> Unmute
+               </button>
+               <section id="controls" style="display:none;">
+                  <button type="button" id="button_play" class="btn btn-default btn-sm">
+                  <span class="glyphicon glyphicon-play"></span> Play
+                  </button>
+                  <button type="button" id="button_pause" class="btn btn-default btn-sm">
+                  <span class="glyphicon glyphicon-pause"></span> Pause
+                  </button>
+                  <button type="button" id="button_default" class="btn btn-default btn-sm">
+                  <span class="glyphicon glyphicon-stop"></span> Back to default
+                  </button>
+               </section>
+               <br>It's sample video up there ^ by default, which can be paused and played only by video admin (server).
+               <br><br>To become video admin, type <b> /play url</b> and host your own video, for example:
+               <br>/play https://www.youtube.com/watch?v=FdOfhuYW_OI 
+               <br>
+               <br>When your video is playing, you can control it for all viewers, using buttons below (hidden for non-admin) or simply using
+               the youtube player controls.
+            </div>
+         </div>
+         <div id="footerfdsf">
+            <form id="form" action="">
+               <input id="input" autocomplete="off" /><button>Send</button> <button id="testbutton" type="button"">test</button>
+            </form>
+         </div>
+      </div>
+   </body>
+   <script src="/socket.io/socket.io.js"></script>
+   <script src="player.js"></script>
+   <script src="engine.js""></script>
 </html>

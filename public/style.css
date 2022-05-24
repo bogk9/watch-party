@@ -226,3 +226,31 @@ body {
 	color: #bfbdbd;
 	font-weight:2px;
 }
+
+#button_unmute{
+	border-radius: 20px;
+	background: none;
+	color: #bfbdbd;
+	margin-bottom: 10px;
+}
+
+#button_play{
+	border-radius: 20px;
+	background: none;
+	color: #bfbdbd;
+	margin-bottom: 10px;
+}
+
+#button_pause{
+	border-radius: 20px;
+	background: none;
+	color: #bfbdbd;
+	margin-bottom: 10px;
+}
+
+#button_default{
+	border-radius: 20px;
+	background: none;
+	color: #bfbdbd;
+	margin-bottom: 10px;
+}
